@@ -1,0 +1,13 @@
+{
+    "name": "tecni/visualisation-stats",
+    "type": "project",
+    "require": {
+        "phpoffice/phpspreadsheet": "^2.1"
+    },
+    "authors": [
+        {
+            "name": "Vincent Guell",
+            "email": "vguell57@gmail.com"
+        }
+    ]
+}
