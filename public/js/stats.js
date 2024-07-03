@@ -3,6 +3,7 @@ var filePlayerNames = filePlayerNamesData;
 var fileSheetNames = fileSheetNamesData;
 
 let chart; // Déclarer une variable globale pour stocker l'instance du graphique
+
 const playerCheckboxes = document.querySelectorAll(".player-checkbox");
 const sheetCheckboxes = document.querySelectorAll(".sheet-checkbox");
 const statCheckboxes = document.querySelectorAll(".stat-checkbox");
@@ -36,29 +37,41 @@ function getPlayerStats() {
   ).map((checkbox) => checkbox.value);
 
   for (const { fileName, playerName } of selectedPlayers) {
-    for (const { sheetName } of selectedSheets.filter(
+    const playerSheets = selectedSheets.filter(
       (sheet) => sheet.fileName === fileName
-    )) {
-      if (
-        playerStats.hasOwnProperty(fileName) &&
-        playerStats[fileName].hasOwnProperty(playerName) &&
-        playerStats[fileName][playerName]["data"].hasOwnProperty(sheetName)
-      ) {
-        const sheetData = playerStats[fileName][playerName]["data"][sheetName];
-        for (const stat of selectedStats) {
-          if (sheetData.hasOwnProperty(stat)) {
-            stats.push({
-              name: playerName,
-              value: sheetData[stat],
-              sheet: sheetName,
-              file: fileName,
-              stat: stat,
-            });
-          }
+    );
+
+    for (const stat of selectedStats) {
+      const statValues = [];
+
+      for (const { sheetName } of playerSheets) {
+        if (
+          playerStats.hasOwnProperty(fileName) &&
+          playerStats[fileName].hasOwnProperty(playerName) &&
+          playerStats[fileName][playerName]["data"].hasOwnProperty(sheetName) &&
+          playerStats[fileName][playerName]["data"][sheetName].hasOwnProperty(
+            stat
+          )
+        ) {
+          const value =
+            playerStats[fileName][playerName]["data"][sheetName][stat];
+          statValues.push(value);
         }
+      }
+
+      if (statValues.length > 0) {
+        const average =
+          statValues.reduce((a, b) => a + b, 0) / statValues.length;
+        stats.push({
+          name: playerName,
+          value: average,
+          stat: stat,
+          file: fileName,
+        });
       }
     }
   }
+
   return stats;
 }
 
@@ -72,8 +85,8 @@ function displayStats() {
     chart.destroy();
   }
 
-  // Générer des couleurs aléatoires pour les statistiques
-  const statColors = {};
+  // Générer des couleurs aléatoires pour les joueurs
+  const playerColors = {};
   const generateColor = () => {
     const r = Math.floor(Math.random() * 256);
     const g = Math.floor(Math.random() * 256);
@@ -84,28 +97,29 @@ function displayStats() {
   // Créer le graphique avec Chart.js
   const ctx = document.getElementById("stat-chart").getContext("2d");
   chart = new Chart(ctx, {
-    type: chartType === "pie" || chartType === "doughnut" ? "bar" : chartType, // Utiliser le graphique à barres pour les graphiques circulaires
+    type: chartType,
     data: {
-      labels: Array.from(new Set(playerStats.map((player) => player.name))), // Afficher uniquement les noms de joueurs uniques
-      datasets: Array.from(new Set(playerStats.map((stat) => stat.stat))).map(
-        (stat) => {
-          if (!statColors[stat]) {
-            statColors[stat] = generateColor();
-          }
+      labels: Array.from(new Set(playerStats.map((stat) => stat.stat))), // Étiquettes = statistiques
+      datasets: Array.from(
+        new Set(playerStats.map((player) => player.name))
+      ).map((playerName) => {
+        const dataset = {
+          label: playerName,
+          data: playerStats
+            .filter((player) => player.name === playerName)
+            .map((player) => player.value),
+          backgroundColor: playerColors[playerName] || generateColor(),
+          borderColor: playerColors[playerName] || generateColor(),
+          borderWidth: 1,
+        };
 
-          const dataset = {
-            label: stat,
-            data: playerStats
-              .filter((player) => player.stat === stat)
-              .map((player) => player.value),
-            backgroundColor: statColors[stat],
-            borderColor: statColors[stat],
-            borderWidth: 1,
-          };
-
-          return dataset;
+        // Générer une couleur pour chaque joueur
+        if (!playerColors[playerName]) {
+          playerColors[playerName] = dataset.backgroundColor;
         }
-      ),
+
+        return dataset;
+      }),
     },
     options: {
       scales: {
@@ -119,11 +133,10 @@ function displayStats() {
             label: function (context) {
               const label = context.dataset.label || "";
               const value = context.formattedValue;
-              const playerName = context.label;
               const stat = playerStats[context.dataIndex].stat;
               const sheetName = playerStats[context.dataIndex].sheet;
               const fileName = playerStats[context.dataIndex].file;
-              return `${label}: ${value} (${playerName} - ${stat} - ${sheetName} - ${fileName})`;
+              return `${label}: ${value} (${stat} - ${sheetName} - ${fileName})`;
             },
           },
         },
@@ -138,11 +151,13 @@ playerCheckboxes.forEach((checkbox) => {
     displayStats();
   });
 });
+
 sheetCheckboxes.forEach((checkbox) => {
   checkbox.addEventListener("change", function () {
     displayStats();
   });
 });
+
 statCheckboxes.forEach((checkbox) => {
   checkbox.addEventListener("change", function () {
     displayStats();

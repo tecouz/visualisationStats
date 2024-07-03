@@ -107,64 +107,45 @@ $columnNames = array_unique($columnNames);
 
 <head>
     <title>Statistiques des joueurs</title>
-    <style>
-    body {
-        font-family: Arial, sans-serif;
-    }
-
-    .checkbox-container {
-        display: flex;
-        flex-wrap: wrap;
-        margin-bottom: 10px;
-    }
-
-    .checkbox-container>span {
-        margin-right: 5px;
-    }
-
-    .file-section {
-        margin-bottom: 20px;
-        padding: 10px;
-        border: 1px solid #ccc;
-    }
-    </style>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/process.css">
 </head>
 
 <body>
     <h1>Sélectionnez les joueurs, les feuilles et les statistiques</h1>
     <?php foreach ($filePlayerNames as $fileName => $playerNames): ?>
-    <div class="file-section">
-        <h3><?= $fileName ?></h3>
-        <div class="checkbox-container">
-            <span>Joueurs :</span>
-            <?php foreach ($playerNames as $playerName): ?>
-            <span>
-                <input type="checkbox" name="player[]" value="<?= $playerName ?>" class="player-checkbox"
-                    data-file="<?= $fileName ?>">
-                <label><?= $playerName ?></label>
-            </span>
-            <?php endforeach; ?>
+        <div class="file-section">
+            <h3><?= $fileName ?></h3>
+            <div class="checkbox-container">
+                <span>Joueurs :</span>
+                <?php foreach ($playerNames as $playerName): ?>
+                    <span>
+                        <input type="checkbox" name="player[]" value="<?= $playerName ?>" class="player-checkbox"
+                            data-file="<?= $fileName ?>">
+                        <label><?= $playerName ?></label>
+                    </span>
+                <?php endforeach; ?>
+            </div>
+            <div class="checkbox-container">
+                <span>Feuilles :</span>
+                <?php foreach ($fileSheetNames[$fileName] as $sheetName): ?>
+                    <span>
+                        <input type="checkbox" name="sheets[]" value="<?= $sheetName ?>" class="sheet-checkbox"
+                            data-file="<?= $fileName ?>">
+                        <label><?= $sheetName ?></label>
+                    </span>
+                <?php endforeach; ?>
+            </div>
         </div>
-        <div class="checkbox-container">
-            <span>Feuilles :</span>
-            <?php foreach ($fileSheetNames[$fileName] as $sheetName): ?>
-            <span>
-                <input type="checkbox" name="sheets[]" value="<?= $sheetName ?>" class="sheet-checkbox"
-                    data-file="<?= $fileName ?>">
-                <label><?= $sheetName ?></label>
-            </span>
-            <?php endforeach; ?>
-        </div>
-    </div>
     <?php endforeach; ?>
     <div>
         <label>Statistiques :</label>
         <div class="checkbox-container">
             <?php foreach ($columnNames as $columnName): ?>
-            <span>
-                <input type="checkbox" name="stats[]" value="<?= $columnName ?>" class="stat-checkbox">
-                <label><?= $columnName ?></label>
-            </span>
+                <span>
+                    <input type="checkbox" name="stats[]" value="<?= $columnName ?>" class="stat-checkbox">
+                    <label><?= $columnName ?></label>
+                </span>
             <?php endforeach; ?>
         </div>
     </div>
@@ -180,15 +161,15 @@ $columnNames = array_unique($columnNames);
         </select>
     </div>
     <button id="display-stats-btn">Afficher les statistiques</button>
-    <div>
+    <div id="stat-chart-container">
         <canvas id="stat-chart"></canvas>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-    var playerStatsData = <?php echo json_encode($playerStats); ?>;
-    var filePlayerNamesData = <?php echo json_encode($filePlayerNames); ?>;
-    var fileSheetNamesData = <?php echo json_encode($fileSheetNames); ?>;
+        var playerStatsData = <?php echo json_encode($playerStats); ?>;
+        var filePlayerNamesData = <?php echo json_encode($filePlayerNames); ?>;
+        var fileSheetNamesData = <?php echo json_encode($fileSheetNames); ?>;
     </script>
     <script src="js/stats.js"></script>
 </body>
