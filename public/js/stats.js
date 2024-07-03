@@ -22,6 +22,7 @@ function getPlayerStats() {
       playerName,
     };
   });
+
   const selectedSheets = Array.from(
     document.querySelectorAll(".sheet-checkbox:checked")
   ).map((checkbox) => {
@@ -32,6 +33,7 @@ function getPlayerStats() {
       sheetName,
     };
   });
+
   const selectedStats = Array.from(
     document.querySelectorAll(".stat-checkbox:checked")
   ).map((checkbox) => checkbox.value);
@@ -40,6 +42,14 @@ function getPlayerStats() {
     const playerSheets = selectedSheets.filter(
       (sheet) => sheet.fileName === fileName
     );
+
+    // Si aucune feuille n'est sélectionnée pour ce joueur, sélectionner toutes les feuilles disponibles
+    if (playerSheets.length === 0) {
+      const availableSheets = fileSheetNames[fileName];
+      playerSheets.push(
+        ...availableSheets.map((sheetName) => ({ fileName, sheetName }))
+      );
+    }
 
     for (const stat of selectedStats) {
       const statValues = [];
